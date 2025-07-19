@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tweet semantic search ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .k-input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: lowercase;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .results {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .tweet-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .tweet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tweet-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .tweet-id {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: #f5f7fa;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        .tweet-id a {
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .tweet-id a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .tweet-author {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .author-null {
+            color: #999;
+            font-style: italic;
+        }
+
+        .similarity-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .tweet-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .tweet-pics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tweet-pic {
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tweet-pic:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .tweet-pic img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pic-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        .pic-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .pic-modal img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .pic-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .pic-modal-close:hover {
+            background: rgba(0,0,0,0.8);
+            transform: scale(1.1);
+        }
+
+        .tweet-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .json-toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #667eea;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .json-toggle-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .json-toggle-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .json-viewer {
+            margin-top: 1rem;
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .json-viewer.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 400px;
+            }
+        }
+
+        .json-content {
+            color: #f8f8f2;
+        }
+
+        .json-key {
+            color: #66d9ef;
+        }
+
+        .json-string {
+            color: #a6e22e;
+        }
+
+        .json-number {
+            color: #fd971f;
+        }
+
+        .json-boolean {
+            color: #ae81ff;
+        }
+
+        .json-null {
+            color: #f92672;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tweet-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>tweet semantic search <span class="sparkle">✨</span></h1>
+            <p>find tweets using natural language queries ^^ >_<</p>
+        </div>
+
+        <div class="search-card">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="queryInput"
+                    placeholder="enter your search query... (e.g., 'morning coffee vibes')"
+                    required
+                >
+                <div class="controls">
+                    <label for="topK">top results:</label>
+                    <input type="number" class="k-input" id="topK" value="10" min="1" max="50">
+                    <button type="submit" class="search-btn" id="searchBtn">
+                        search tweets ✨
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000'; // updated port! ^^
+        
+        const searchForm = document.getElementById('searchForm');
+        const queryInput = document.getElementById('queryInput');
+        const topKInput = document.getElementById('topK');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsDiv = document.getElementById('results');
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await performSearch();
+        });
+
+        async function performSearch() {
+            const query = queryInput.value.trim();
+            const topK = parseInt(topKInput.value);
+
+            if (!query) return;
+
+            // show loading state
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'searching... ✨';
+            resultsDiv.innerHTML = '<div class="loading">searching through tweets... >_< ✨</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query, top_k: topK })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const results = await response.json();
+                displayResults(results, query);
+
+            } catch (error) {
+                console.error('search error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        oops! search failed >_< <br>
+                        error: ${error.message}<br>
+                        make sure your API is running on ${API_BASE}
+                    </div>
+                `;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'search tweets ✨';
+            }
+        }
+
+        function displayResults(results, query) {
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        no tweets found for "${query}" >_< <br>
+                        try a different search term! ✨
+                    </div>
+                `;
+                return;
+            }
+
+            const resultsHTML = results.map((tweet, index) => {
+                // get the original id for the twitter link (without -2, -3 etc)
+                const originalId = tweet.original_id || tweet.id.split('-')[0];
+                const twitterUrl = `https://x.com/a/status/${originalId}`;
+                
+                // handle author display
+                const authorDisplay = tweet.author && tweet.author !== 'unknown' 
+                    ? `<div class="tweet-author">@${tweet.author}</div>`
+                    : `<div class="tweet-author author-null">author null</div>`;
+                
+                // handle pics display ✨
+                const pics = tweet.raw_data?.pics || [];
+                const picsHTML = pics.length > 0 ? `
+                    <div class="tweet-pics">
+                        ${pics.map((pic, picIndex) => `
+                            <div class="tweet-pic" onclick="openPicModal('${pic}')">
+                                <img src="${pic}" alt="tweet image ${picIndex + 1}" loading="lazy">
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
+                
+                return `
+                    <div class="tweet-card">
+                        <div class="tweet-header">
+                            <div class="tweet-meta">
+                                <div class="tweet-id">
+                                    id: <a href="${twitterUrl}" target="_blank" rel="noopener">${tweet.id}</a>
+                                </div>
+                                ${authorDisplay}
+                            </div>
+                            <div class="similarity-score">${(tweet.score * 100).toFixed(1)}% match</div>
+                        </div>
+                        <div class="tweet-text">${escapeHtml(tweet.text)}</div>
+                        ${picsHTML}
+                        <div class="tweet-actions">
+                            <button class="json-toggle-btn" onclick="toggleJson(${index})">
+                                show raw JSON ✨
+                            </button>
+                        </div>
+                        <div class="json-viewer" id="json-${index}">
+                            <div class="json-content">${formatJSON(tweet.raw_data || tweet)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            resultsDiv.innerHTML = `
+                <div class="search-card">
+                    <h3 style="margin-bottom: 1rem; color: #667eea;">
+                        found ${results.length} tweets for "${query}" ✨
+                    </h3>
+                    <div class="results">
+                        ${resultsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleJson(index) {
+            const jsonViewer = document.getElementById(`json-${index}`);
+            const button = jsonViewer.previousElementSibling.querySelector('.json-toggle-btn');
+            
+            if (jsonViewer.classList.contains('show')) {
+                jsonViewer.classList.remove('show');
+                button.textContent = 'show raw JSON ✨';
+                button.classList.remove('active');
+            } else {
+                jsonViewer.classList.add('show');
+                button.textContent = 'hide JSON >_<';
+                button.classList.add('active');
+            }
+        }
+
+        function formatJSON(obj) {
+            const json = JSON.stringify(obj, null, 2);
+            return json
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/(".*?")\s*:/g, '<span class="json-key">$1</span>:')
+                .replace(/:\s*(".*?")/g, ': <span class="json-string">$1</span>')
+                .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+                .replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>')
+                .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // focus search input on load
+        window.addEventListener('load', () => {
+            queryInput.focus();
+        });
+
+        // picture modal functions ✨
+        function openPicModal(picUrl) {
+            const modal = document.createElement('div');
+            modal.className = 'pic-modal show';
+            modal.innerHTML = `
+                <span class="pic-modal-close" onclick="closePicModal(this)">&times;</span>
+                <img src="${picUrl}" alt="tweet image">
+            `;
+            document.body.appendChild(modal);
+
+            // close on click outside image
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closePicModal(modal.querySelector('.pic-modal-close'));
+                }
+            });
+
+            // close on escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closePicModal(modal.querySelector('.pic-modal-close'));
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function closePicModal(closeBtn) {
+            const modal = closeBtn.parentElement;
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 300);
+        }
+    </script>
+</body>
+</html>
