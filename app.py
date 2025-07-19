@@ -77,7 +77,7 @@ def build_search_index(id2vec, tweets_data):
     
     # build helper maps
     ids = list(id2vec.keys())
-    vectors = np.stack([np.array(id2vec[i]) for i in ids])
+    vectors = np.stack([np.array(id2vec[i], dtype=np.float16) for i in ids])
     id2text = {t["id"]: t["text"] for t in tweets}
     id2author = {t["id"]: t.get("author", "unknown") for t in tweets}  # get author or default to unknown ^^
     
