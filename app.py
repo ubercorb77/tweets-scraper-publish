@@ -27,11 +27,8 @@ EMBED_DIM = 784
 K = 5
 
 # global variables for loaded data >_<
-ids = None
-vectors = None
-id2text = None
-id2author = None
-tweets = None  # store full tweet objects ^^
+vector_files = None
+tweet_files = None
 data_loaded = False
 
 # -------------------------------------------------
@@ -41,48 +38,40 @@ def get_original_id(tweet_id):
     """get original id from potentially duplicated id"""
     return tweet_id.split('-')[0]
 
-def find_latest_combined_files():
-    """find the most recent combined files"""
-    vector_files = glob.glob("combined_files/*-all-id2vec.json")
-    tweet_files = glob.glob("combined_files/*-all-tweets.json")
+def find_latest_chunked_files():
+    """find the most recent chunked files"""
+    # find all vector chunk files
+    vector_patterns = glob.glob("*-id2vec-*.json")
+    tweet_patterns = glob.glob("*-tweets-*.json")
     
-    if not vector_files or not tweet_files:
-        raise FileNotFoundError("no combined files found in combined_files/ directory! >_<")
+    if not vector_patterns or not tweet_patterns:
+        raise FileNotFoundError("no chunked files found! run the combiner script first >_<")
     
-    # get the most recent files
-    vector_file = max(vector_files, key=os.path.getctime)
-    tweet_file = max(tweet_files, key=os.path.getctime)
+    # group by timestamp prefix
+    vector_groups = defaultdict(list)
+    tweet_groups = defaultdict(list)
     
-    return vector_file, tweet_file
-
-def load_combined_data():
-    """load the combined vector and tweet data from json files"""
-    vector_file, tweet_file = find_latest_combined_files()
-    print(f"✨ loading data from {vector_file} and {tweet_file}...")
+    for file in vector_patterns:
+        # extract timestamp (assuming format: YYYYMMDD-HHMMSS-id2vec-XXX.json)
+        timestamp = '-'.join(file.split('-')[:2])
+        vector_groups[timestamp].append(file)
     
-    with open(vector_file, 'r', encoding='utf-8') as f:
-        id2vec = json.load(f)
+    for file in tweet_patterns:
+        # extract timestamp (assuming format: YYYYMMDD-HHMMSS-tweets-XXX.json)
+        timestamp = '-'.join(file.split('-')[:2])
+        tweet_groups[timestamp].append(file)
     
-    with open(tweet_file, 'r', encoding='utf-8') as f:
-        tweets_data = json.load(f)
+    # get the most recent timestamp
+    latest_timestamp = max(vector_groups.keys())
     
-    return id2vec, tweets_data
-
-def build_search_index(id2vec, tweets_data):
-    """build numpy arrays and helper maps for fast search"""
-    global tweets  # make tweets global so we can access full objects later ^^
-    tweets = tweets_data  # store for later use :3
+    if latest_timestamp not in tweet_groups:
+        raise FileNotFoundError(f"no matching tweet files for timestamp {latest_timestamp} >_<")
     
-    print("building search index...")
+    # sort files by chunk number
+    vector_files = sorted(vector_groups[latest_timestamp])
+    tweet_files = sorted(tweet_groups[latest_timestamp])
     
-    # build helper maps
-    ids = list(id2vec.keys())
-    vectors = np.stack([np.array(id2vec[i], dtype=np.float16) for i in ids])
-    id2text = {t["id"]: t["text"] for t in tweets}
-    id2author = {t["id"]: t.get("author", "unknown") for t in tweets}  # get author or default to unknown ^^
-    
-    print(f"  indexed {len(ids)} vectors and {len(id2text)} tweets! >_<")
-    return ids, vectors, id2text, id2author
+    return vector_files, tweet_files
 
 def embed_text(text: str):
     """embed query text using openai api"""
@@ -93,60 +82,120 @@ def embed_text(text: str):
     )
     return np.array(resp.data[0].embedding)
 
-def search_tweets_func(query: str, top_k: int = K):
+def search_chunk(query_vector, vector_file, tweet_files_list, top_k=K):
+    """search a single vector chunk and return top k results"""
+    try:
+        # load vector chunk
+        with open(vector_file, 'r', encoding='utf-8') as f:
+            id2vec = json.load(f)
+        
+        # build tweet lookup from all tweet files (cached approach)
+        id2text = {}
+        id2author = {}
+        id2tweet = {}
+        
+        for tweet_file in tweet_files_list:
+            try:
+                with open(tweet_file, 'r', encoding='utf-8') as f:
+                    tweets = json.load(f)
+                    for tweet in tweets:
+                        if isinstance(tweet, dict) and 'id' in tweet:
+                            tweet_id = tweet['id']
+                            id2text[tweet_id] = tweet.get('text', '')
+                            id2author[tweet_id] = tweet.get('author', 'unknown')
+                            id2tweet[tweet_id] = tweet
+            except Exception as e:
+                print(f"error reading tweet file {tweet_file}: {e}")
+                continue
+        
+        # build search arrays
+        ids = list(id2vec.keys())
+        if not ids:
+            return []
+        
+        vectors = np.stack([np.array(id2vec[i], dtype=np.float16) for i in ids])
+        
+        # compute cosine similarity
+        sims = vectors @ query_vector
+        idxs = np.argsort(sims)[::-1][:top_k]
+        
+        results = []
+        for i in idxs:
+            tweet_id = ids[i]
+            original_id = get_original_id(tweet_id)
+            text = id2text.get(tweet_id, f"[text not found for {tweet_id}]")
+            author = id2author.get(tweet_id, "unknown")
+            tweet_obj = id2tweet.get(tweet_id, {})
+            
+            results.append({
+                "id": tweet_id,
+                "original_id": original_id,
+                "score": float(sims[i]),
+                "text": text,
+                "author": author,
+                "raw_data": tweet_obj
+            })
+        
+        return results
+        
+    except Exception as e:
+        print(f"error searching chunk {vector_file}: {e}")
+        return []
+
+def search_tweets_chunked(query: str, top_k: int = K):
     """
-    cosine similarity search returning text with full tweet objects ✨
+    search across multiple vector chunks and return final top k results ✨
     uses the formula: similarity = $\\vec{q} \\cdot \\vec{t}$ where $\\vec{q}$ is query vector and $\\vec{t}$ is tweet vector
     """
-    global ids, vectors, id2text, id2author, tweets
+    global vector_files, tweet_files
     
     if not data_loaded:
         raise Exception("data not loaded! check startup logs :3")
     
+    print(f"searching '{query}' across {len(vector_files)} vector chunks...")
+    
+    # embed query once
     q_vec = embed_text(query)
-    # compute cosine similarity: $\\text{sim}_i = \\frac{\\vec{q} \\cdot \\vec{t_i}}{||\\vec{q}|| \\cdot ||\\vec{t_i}||}$
-    # but since embeddings are normalized, this simplifies to just dot product ^^
-    sims = vectors @ q_vec
-    idxs = np.argsort(sims)[::-1][:top_k]
     
-    results = []
-    for i in idxs:
-        tweet_id = ids[i]
-        original_id = get_original_id(tweet_id)
-        
-        # get text and author
-        text = id2text.get(tweet_id, f"[text not found for {tweet_id}]")
-        author = id2author.get(tweet_id, "unknown")
-        
-        # find the original tweet object for full json data ✨
-        tweet_obj = next((t for t in tweets if t["id"] == tweet_id), {})
-        
-        results.append({
-            "id": tweet_id,
-            "original_id": original_id,
-            "score": float(sims[i]),
-            "text": text,
-            "author": author,
-            "raw_data": tweet_obj  # include full tweet json! ^^
-        })
+    # collect top k from each chunk
+    all_results = []
+    for i, vector_file in enumerate(vector_files):
+        print(f"  searching chunk {i+1}/{len(vector_files)}: {vector_file}")
+        chunk_results = search_chunk(q_vec, vector_file, tweet_files, top_k)
+        all_results.extend(chunk_results)
     
-    return results
+    # sort all results and take final top k
+    all_results.sort(key=lambda x: x['score'], reverse=True)
+    final_results = all_results[:top_k]
+    
+    print(f"found {len(final_results)} final results! ⊹₊")
+    return final_results
 
 # -------------------------------------------------
 # initialize data on startup ✨
 # -------------------------------------------------
 def initialize_data():
     """load and index all data on app startup"""
-    global ids, vectors, id2text, id2author, data_loaded
+    global vector_files, tweet_files, data_loaded
     
     try:
-        print("🚀 initializing tweet search engine...")
+        print("🚀 initializing chunked tweet search engine...")
         
-        # load combined data
-        id2vec, tweets_data = load_combined_data()
+        # find latest chunked files
+        vector_files, tweet_files = find_latest_chunked_files()
         
-        # build search index
-        ids, vectors, id2text, id2author = build_search_index(id2vec, tweets_data)
+        print(f"found {len(vector_files)} vector chunks and {len(tweet_files)} tweet chunks")
+        print("vector files:", vector_files[:3], "..." if len(vector_files) > 3 else "")
+        print("tweet files:", tweet_files[:3], "..." if len(tweet_files) > 3 else "")
+        
+        # verify files exist
+        missing_files = []
+        for f in vector_files + tweet_files:
+            if not os.path.exists(f):
+                missing_files.append(f)
+        
+        if missing_files:
+            raise FileNotFoundError(f"missing files: {missing_files}")
         
         data_loaded = True
         print("✨ initialization complete! ready to search tweets ^^ >_<")
@@ -185,8 +234,8 @@ def search_endpoint():
         if not data_loaded:
             return jsonify({"error": "search index not loaded! check server logs >_<"}), 500
         
-        # perform search ^^
-        results = search_tweets_func(query, top_k)
+        # perform chunked search ^^
+        results = search_tweets_chunked(query, top_k)
         
         return jsonify(results)
         
@@ -197,10 +246,21 @@ def search_endpoint():
 @app.route('/health')
 def health_check():
     """health check endpoint"""
+    total_vectors = 0
+    total_tweets = 0
+    
+    if data_loaded and vector_files and tweet_files:
+        # estimate totals from file count (rough estimate)
+        total_vectors = len(vector_files) * 1000  # rough estimate
+        total_tweets = len(tweet_files) * 1000    # rough estimate
+    
     return jsonify({
         "status": "healthy" if data_loaded else "unhealthy",
         "data_loaded": data_loaded,
-        "total_tweets": len(ids) if data_loaded else 0,
+        "vector_chunks": len(vector_files) if vector_files else 0,
+        "tweet_chunks": len(tweet_files) if tweet_files else 0,
+        "estimated_vectors": total_vectors,
+        "estimated_tweets": total_tweets,
         "embed_model": EMBED_MODEL,
         "embed_dim": EMBED_DIM
     })
@@ -211,14 +271,35 @@ def stats():
     if not data_loaded:
         return jsonify({"error": "data not loaded"}), 500
     
+    # count actual entries by reading first chunk
+    sample_vector_count = 0
+    sample_tweet_count = 0
+    
+    try:
+        if vector_files:
+            with open(vector_files[0], 'r', encoding='utf-8') as f:
+                sample_vectors = json.load(f)
+                sample_vector_count = len(sample_vectors)
+        
+        if tweet_files:
+            with open(tweet_files[0], 'r', encoding='utf-8') as f:
+                sample_tweets = json.load(f)
+                sample_tweet_count = len(sample_tweets)
+                
+    except Exception as e:
+        print(f"error reading sample files: {e}")
+    
     return jsonify({
-        "total_vectors": len(ids),
-        "total_tweets": len(id2text),
-        "total_authors": len(set(id2author.values())),
+        "vector_chunks": len(vector_files),
+        "tweet_chunks": len(tweet_files),
+        "sample_vectors_per_chunk": sample_vector_count,
+        "sample_tweets_per_chunk": sample_tweet_count,
+        "estimated_total_vectors": sample_vector_count * len(vector_files),
+        "estimated_total_tweets": sample_tweet_count * len(tweet_files),
         "embedding_model": EMBED_MODEL,
         "embedding_dimensions": EMBED_DIM,
-        "vector_shape": list(vectors.shape) if vectors is not None else None,
-        "sample_tweet_id": ids[0] if ids else None
+        "vector_files": vector_files[:5] if vector_files else [],
+        "tweet_files": tweet_files[:5] if tweet_files else []
     })
 
 @app.route('/tweet/<tweet_id>')
@@ -227,17 +308,35 @@ def get_tweet(tweet_id):
     if not data_loaded:
         return jsonify({"error": "data not loaded"}), 500
     
-    # find the tweet in our data
-    tweet_obj = next((t for t in tweets if t["id"] == tweet_id), None)
+    # search through all tweet files
+    for tweet_file in tweet_files:
+        try:
+            with open(tweet_file, 'r', encoding='utf-8') as f:
+                tweets = json.load(f)
+                for tweet in tweets:
+                    if isinstance(tweet, dict) and tweet.get('id') == tweet_id:
+                        return jsonify({
+                            "tweet": tweet,
+                            "text": tweet.get('text', ''),
+                            "author": tweet.get('author', 'unknown'),
+                            "original_id": get_original_id(tweet_id)
+                        })
+        except Exception as e:
+            print(f"error reading {tweet_file}: {e}")
+            continue
     
-    if not tweet_obj:
-        return jsonify({"error": f"tweet {tweet_id} not found >_<"}), 404
+    return jsonify({"error": f"tweet {tweet_id} not found >_<"}), 404
+
+@app.route('/chunks')
+def list_chunks():
+    """list all available chunks"""
+    if not data_loaded:
+        return jsonify({"error": "data not loaded"}), 500
     
     return jsonify({
-        "tweet": tweet_obj,
-        "text": id2text.get(tweet_id, ""),
-        "author": id2author.get(tweet_id, "unknown"),
-        "original_id": get_original_id(tweet_id)
+        "vector_files": vector_files,
+        "tweet_files": tweet_files,
+        "total_chunks": len(vector_files) + len(tweet_files)
     })
 
 # -------------------------------------------------
@@ -262,11 +361,12 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))  # updated to port 8000! ✨
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     
-    print(f"🌟 starting tweet search server on port {port}...")
+    print(f"🌟 starting chunked tweet search server on port {port}...")
     print(f"🔍 search endpoint: http://localhost:{port}/search")
     print(f"💖 frontend: http://localhost:{port}/")
     print(f"📊 stats: http://localhost:{port}/stats")
     print(f"❤️ health: http://localhost:{port}/health")
+    print(f"📁 chunks: http://localhost:{port}/chunks")
     
     app.run(
         host='0.0.0.0',
