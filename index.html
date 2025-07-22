@@ -118,6 +118,49 @@
             font-size: 1.1rem;
         }
 
+        .progress-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .progress-message {
+            font-size: 1.1rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .timer {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            color: #666;
+            background: #f8f9fa;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
         .results {
             display: grid;
             gap: 1rem;
@@ -191,11 +234,23 @@
             white-space: nowrap;
         }
 
+        .duplicate-count {
+            background: #ffd43b;
+            color: #333;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+
         .tweet-text {
             font-size: 1.1rem;
             line-height: 1.6;
             color: #333;
             margin-bottom: 1rem;
+            white-space: pre-wrap; /* preserve line breaks and wrap long text */
+            word-break: break-word; /* break very long words */
         }
 
         .tweet-pics {
@@ -282,9 +337,10 @@
             display: flex;
             gap: 0.5rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
-        .json-toggle-btn {
+        .action-btn {
             background: #f8f9fa;
             border: 1px solid #e9ecef;
             color: #667eea;
@@ -295,13 +351,13 @@
             transition: all 0.3s ease;
         }
 
-        .json-toggle-btn:hover {
+        .action-btn:hover {
             background: #667eea;
             color: white;
             transform: translateY(-1px);
         }
 
-        .json-toggle-btn.active {
+        .action-btn.active {
             background: #667eea;
             color: white;
         }
@@ -325,6 +381,59 @@
             animation: slideDown 0.3s ease-out;
         }
 
+        .duplicates-section {
+            margin-top: 1rem;
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 1rem;
+            display: none;
+        }
+
+        .duplicates-section.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .duplicates-header {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .duplicate-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+
+        .duplicate-card:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .duplicate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .duplicate-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -332,7 +441,7 @@
             }
             to {
                 opacity: 1;
-                max-height: 400px;
+                max-height: 1000px;
             }
         }
 
@@ -410,7 +519,7 @@
     <div class="container">
         <div class="header">
             <h1>tweet semantic search <span class="sparkle">✨</span></h1>
-            <p>find tweets using natural language queries ^^ >_<</p>
+            <p>coded by claude & corbin >_<</p>
         </div>
 
         <div class="search-card">
@@ -424,7 +533,7 @@
                 >
                 <div class="controls">
                     <label for="topK">top results:</label>
-                    <input type="number" class="k-input" id="topK" value="10" min="1" max="50">
+                    <input type="number" class="k-input" id="topK" value="50" min="1" max="50">
                     <button type="submit" class="search-btn" id="searchBtn">
                         search tweets ✨
                     </button>
@@ -436,7 +545,7 @@
     </div>
 
     <script>
-        const API_BASE = ''; // updated port! ^^
+        const API_BASE = ''; 
         
         const searchForm = document.getElementById('searchForm');
         const queryInput = document.getElementById('queryInput');
@@ -444,24 +553,42 @@
         const searchBtn = document.getElementById('searchBtn');
         const resultsDiv = document.getElementById('results');
 
+        let searchStartTime = null;
+        let timerInterval = null;
+
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await performSearch();
+            await performStreamingSearch();
         });
 
-        async function performSearch() {
+        async function performStreamingSearch() {
             const query = queryInput.value.trim();
             const topK = parseInt(topKInput.value);
 
             if (!query) return;
 
-            // show loading state
+            // start timer and disable search
+            searchStartTime = Date.now();
             searchBtn.disabled = true;
             searchBtn.textContent = 'searching... ✨';
-            resultsDiv.innerHTML = '<div class="loading">searching through tweets... >_< ✨</div>';
+            
+            // show progress container
+            resultsDiv.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-message" id="progressMessage">initializing search...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="timer" id="searchTimer">0.0s</div>
+                </div>
+            `;
+
+            // start timer updates
+            timerInterval = setInterval(updateTimer, 100);
 
             try {
-                const response = await fetch(`${API_BASE}/search`, {
+                // use fetch with streaming instead of EventSource for POST support
+                const response = await fetch(`${API_BASE}/search/stream`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -473,38 +600,120 @@
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
-                const results = await response.json();
-                displayResults(results, query);
+                // read streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // process complete lines (SSE format: "data: {...}\n\n")
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || ''; // keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6)); // remove "data: " prefix
+                                handleProgressUpdate(data, query);
+                            } catch (e) {
+                                console.error('error parsing SSE data:', e);
+                            }
+                        }
+                    }
+                }
 
             } catch (error) {
                 console.error('search error:', error);
-                resultsDiv.innerHTML = `
-                    <div class="error">
-                        oops! search failed >_< <br>
-                        error: ${error.message}<br>
-                        make sure your API is running on ${API_BASE}
-                    </div>
-                `;
-            } finally {
-                searchBtn.disabled = false;
-                searchBtn.textContent = 'search tweets ✨';
+                handleSearchError(error.message);
             }
         }
 
-        function displayResults(results, query) {
+        function handleProgressUpdate(data, query) {
+            const progressMessage = document.getElementById('progressMessage');
+            const progressFill = document.getElementById('progressFill');
+
+            if (data.step === 'embedding') {
+                progressMessage.textContent = data.message;
+                progressFill.style.width = '10%';
+            } 
+            else if (data.step === 'searching') {
+                progressMessage.textContent = data.message;
+                // calculate progress: 10% (embed) + chunk_progress * 70%
+                const chunkProgress = (data.chunk / data.total_chunks) * 70;
+                progressFill.style.width = `${10 + chunkProgress}%`;
+            }
+            else if (data.step === 'finalizing') {
+                progressMessage.textContent = data.message;
+                progressFill.style.width = '90%';
+            }
+            else if (data.step === 'complete') {
+                progressFill.style.width = '100%';
+                clearInterval(timerInterval);
+                
+                const finalTime = Math.floor((Date.now() - searchStartTime) / 100) / 10;
+                
+                // show final results with search time
+                displayResults(data.results, query, finalTime);
+                
+                // cleanup
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'search tweets ✨';
+            }
+            else if (data.step === 'error') {
+                clearInterval(timerInterval);
+                handleSearchError(data.error);
+            }
+        }
+
+        function updateTimer() {
+            if (searchStartTime) {
+                const elapsed = Math.floor((Date.now() - searchStartTime) / 100) / 10;
+                const timerElement = document.getElementById('searchTimer');
+                if (timerElement) {
+                    timerElement.textContent = `${elapsed.toFixed(1)}s`;
+                }
+            }
+        }
+
+        function handleSearchError(errorMessage) {
+            clearInterval(timerInterval);
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'search tweets ✨';
+            
+            resultsDiv.innerHTML = `
+                <div class="error">
+                    oops! search failed >_< <br>
+                    error: ${errorMessage}<br>
+                    make sure your API is running on ${API_BASE}
+                </div>
+            `;
+        }
+
+        function displayResults(results, query, searchTime) {
             if (!results || results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="no-results">
                         no tweets found for "${query}" >_< <br>
-                        try a different search term! ✨
+                        try a different search term! ✨<br>
+                        <div class="timer" style="margin-top: 1rem;">search completed in ${searchTime.toFixed(1)}s</div>
                     </div>
                 `;
                 return;
             }
 
-            const resultsHTML = results.map((tweet, index) => {
-                // get the original id for the twitter link (without -2, -3 etc)
-                const originalId = tweet.original_id || tweet.id.split('-')[0];
+            const resultsHTML = results.map((result, index) => {
+                // get representative tweet (best scoring duplicate)
+                const tweet = result.representative;
+                const duplicates = result.duplicates || [];
+                const duplicateCount = result.duplicate_count || duplicates.length;
+                
+                // get the original id for the twitter link
+                const originalId = result.original_id;
                 const twitterUrl = `https://x.com/a/status/${originalId}`;
                 
                 // handle author display
@@ -523,37 +732,75 @@
                         `).join('')}
                     </div>
                 ` : '';
+
+                // create duplicates section
+                const duplicatesHTML = duplicates.length > 1 ? `
+                    <div class="duplicates-section" id="duplicates-${index}">
+                        <div class="duplicates-header">
+                            ✨ all ${duplicateCount} versions of this tweet:
+                        </div>
+                        ${duplicates.map((dup, dupIndex) => {
+                            const dupTwitterUrl = `https://x.com/a/status/${dup.id.split('-')[0]}`;
+                            const dupAuthorDisplay = dup.author && dup.author !== 'unknown' 
+                                ? `@${dup.author}` 
+                                : 'author null';
+                            return `
+                                <div class="duplicate-card">
+                                    <div class="duplicate-header">
+                                        <span style="font-family: 'SF Mono', monospace; background: #f0f0f0; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                            <a href="${dupTwitterUrl}" target="_blank" style="color: #667eea; text-decoration: none;">${dup.id}</a>
+                                        </span>
+                                        <span>${dupAuthorDisplay} • ${(dup.score * 100).toFixed(1)}% match</span>
+                                    </div>
+                                    <div class="duplicate-text">${escapeHtml(dup.text)}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : '';
                 
                 return `
                     <div class="tweet-card">
                         <div class="tweet-header">
                             <div class="tweet-meta">
                                 <div class="tweet-id">
-                                    id: <a href="${twitterUrl}" target="_blank" rel="noopener">${tweet.id}</a>
+                                    original id: <a href="${twitterUrl}" target="_blank" rel="noopener">${originalId}</a>
                                 </div>
                                 ${authorDisplay}
                             </div>
-                            <div class="similarity-score">${(tweet.score * 100).toFixed(1)}% match</div>
+                            <div style="display: flex; align-items: center;">
+                                <div class="similarity-score">${(result.best_score * 100).toFixed(1)}% match</div>
+                                ${duplicateCount > 1 ? `<div class="duplicate-count">${duplicateCount} versions</div>` : ''}
+                            </div>
                         </div>
                         <div class="tweet-text">${escapeHtml(tweet.text)}</div>
                         ${picsHTML}
                         <div class="tweet-actions">
-                            <button class="json-toggle-btn" onclick="toggleJson(${index})">
-                                show raw JSON ✨
+                            ${duplicateCount > 1 ? `
+                                <button class="action-btn" onclick="toggleDuplicates(${index})">
+                                    show all ${duplicateCount} versions ✨
+                                </button>
+                            ` : ''}
+                            <button class="action-btn" onclick="toggleJson(${index})">
+                                show raw JSON >_<
                             </button>
                         </div>
+                        ${duplicatesHTML}
                         <div class="json-viewer" id="json-${index}">
-                            <div class="json-content">${formatJSON(tweet.raw_data || tweet)}</div>
+                            <div class="json-content">${formatJSON(result)}</div>
                         </div>
                     </div>
                 `;
             }).join('');
 
+            const totalDuplicates = results.reduce((sum, r) => sum + (r.duplicate_count || 0), 0);
+
             resultsDiv.innerHTML = `
                 <div class="search-card">
                     <h3 style="margin-bottom: 1rem; color: #667eea;">
-                        found ${results.length} tweets for "${query}" ✨
+                        found ${results.length} unique tweets (${totalDuplicates} total versions) for "${query}" ✨
                     </h3>
+                    <div class="timer" style="margin-bottom: 1rem;">search completed in ${searchTime.toFixed(1)}s</div>
                     <div class="results">
                         ${resultsHTML}
                     </div>
@@ -561,17 +808,32 @@
             `;
         }
 
+        function toggleDuplicates(index) {
+            const duplicatesSection = document.getElementById(`duplicates-${index}`);
+            const button = document.querySelector(`[onclick="toggleDuplicates(${index})"]`);
+            
+            if (duplicatesSection.classList.contains('show')) {
+                duplicatesSection.classList.remove('show');
+                button.textContent = button.textContent.replace('hide', 'show').replace('>_<', '✨');
+                button.classList.remove('active');
+            } else {
+                duplicatesSection.classList.add('show');
+                button.textContent = button.textContent.replace('show', 'hide').replace('✨', '>_<');
+                button.classList.add('active');
+            }
+        }
+
         function toggleJson(index) {
             const jsonViewer = document.getElementById(`json-${index}`);
-            const button = jsonViewer.previousElementSibling.querySelector('.json-toggle-btn');
+            const button = document.querySelector(`[onclick="toggleJson(${index})"]`);
             
             if (jsonViewer.classList.contains('show')) {
                 jsonViewer.classList.remove('show');
-                button.textContent = 'show raw JSON ✨';
+                button.textContent = 'show raw JSON >_<';
                 button.classList.remove('active');
             } else {
                 jsonViewer.classList.add('show');
-                button.textContent = 'hide JSON >_<';
+                button.textContent = 'hide JSON ✨';
                 button.classList.add('active');
             }
         }
