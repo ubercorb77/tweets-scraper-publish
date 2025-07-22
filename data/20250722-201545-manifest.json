@@ -1,0 +1,63 @@
+{
+  "timestamp": "20250722-201545",
+  "vector_chunks": 12,
+  "tweet_chunks": 2,
+  "total_vectors": 247722,
+  "total_tweets": 268076,
+  "embedding_dimensions": 784,
+  "chunk_size_mb": 80,
+  "vector_files": [
+    {
+      "vectors": "20250722-201545-vectors-chunk000.npy",
+      "ids": "20250722-201545-ids-chunk000.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk001.npy",
+      "ids": "20250722-201545-ids-chunk001.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk002.npy",
+      "ids": "20250722-201545-ids-chunk002.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk003.npy",
+      "ids": "20250722-201545-ids-chunk003.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk004.npy",
+      "ids": "20250722-201545-ids-chunk004.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk005.npy",
+      "ids": "20250722-201545-ids-chunk005.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk006.npy",
+      "ids": "20250722-201545-ids-chunk006.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk007.npy",
+      "ids": "20250722-201545-ids-chunk007.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk008.npy",
+      "ids": "20250722-201545-ids-chunk008.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk009.npy",
+      "ids": "20250722-201545-ids-chunk009.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk010.npy",
+      "ids": "20250722-201545-ids-chunk010.pkl"
+    },
+    {
+      "vectors": "20250722-201545-vectors-chunk011.npy",
+      "ids": "20250722-201545-ids-chunk011.pkl"
+    }
+  ],
+  "tweet_files": [
+    "20250722-201545-tweets-chunk000.pkl",
+    "20250722-201545-tweets-chunk001.pkl"
+  ]
+}
