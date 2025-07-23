@@ -12,10 +12,10 @@
         }
 
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
             min-height: 100vh;
-            color: #333;
+            color: #374151;
         }
 
         .container {
@@ -27,28 +27,29 @@
         .header {
             text-align: center;
             margin-bottom: 3rem;
-            color: white;
+            color: #374151;
         }
 
         .header h1 {
             font-size: 3rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #111827;
         }
 
         .header p {
             font-size: 1.2rem;
-            opacity: 0.9;
+            opacity: 0.8;
+            color: #6b7280;
         }
 
         .search-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: white;
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
             margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
         }
 
         .search-form {
@@ -60,17 +61,17 @@
         .search-input {
             width: 100%;
             padding: 1rem 1.5rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
             font-size: 1.1rem;
             transition: all 0.3s ease;
             outline: none;
+            background: white;
         }
 
         .search-input:focus {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: #6b7280;
+            box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
         }
 
         .controls {
@@ -82,17 +83,17 @@
         .k-input {
             width: 80px;
             padding: 0.5rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
             text-align: center;
         }
 
         .search-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #374151;
             color: white;
             border: none;
             padding: 1rem 2rem;
-            border-radius: 15px;
+            border-radius: 8px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
@@ -101,8 +102,8 @@
         }
 
         .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            background: #1f2937;
+            transform: translateY(-1px);
         }
 
         .search-btn:disabled {
@@ -114,23 +115,23 @@
         .loading {
             text-align: center;
             padding: 2rem;
-            color: #667eea;
+            color: #6b7280;
             font-size: 1.1rem;
         }
 
         .progress-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+            background: white;
+            border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
             margin-bottom: 2rem;
             text-align: center;
+            border: 1px solid #e5e7eb;
         }
 
         .progress-message {
             font-size: 1.1rem;
-            color: #667eea;
+            color: #374151;
             margin-bottom: 1rem;
             font-weight: 500;
         }
@@ -138,8 +139,8 @@
         .timer {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             font-size: 0.9rem;
-            color: #666;
-            background: #f8f9fa;
+            color: #6b7280;
+            background: #f3f4f6;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             display: inline-block;
@@ -148,7 +149,7 @@
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e1e5e9;
+            background: #e5e7eb;
             border-radius: 4px;
             overflow: hidden;
             margin: 1rem 0;
@@ -156,7 +157,7 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #374151;
             transition: width 0.3s ease;
             border-radius: 4px;
         }
@@ -168,16 +169,17 @@
 
         .tweet-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #6b7280;
+            border: 1px solid #e5e7eb;
         }
 
         .tweet-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
         .tweet-header {
@@ -186,7 +188,7 @@
             align-items: flex-start;
             margin-bottom: 1rem;
             font-size: 0.9rem;
-            color: #666;
+            color: #6b7280;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
@@ -199,34 +201,34 @@
 
         .tweet-id {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            background: #f5f7fa;
+            background: #f3f4f6;
             padding: 0.3rem 0.6rem;
             border-radius: 6px;
         }
 
         .tweet-id a {
-            color: #667eea;
+            color: #374151;
             text-decoration: none;
             transition: all 0.3s ease;
         }
 
         .tweet-id a:hover {
-            color: #764ba2;
+            color: #1f2937;
             text-decoration: underline;
         }
 
         .tweet-author {
             font-weight: 600;
-            color: #667eea;
+            color: #374151;
         }
 
         .author-null {
-            color: #999;
+            color: #9ca3af;
             font-style: italic;
         }
 
         .similarity-score {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #374151;
             color: white;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
@@ -235,8 +237,8 @@
         }
 
         .duplicate-count {
-            background: #ffd43b;
-            color: #333;
+            background: #fbbf24;
+            color: #92400e;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             font-weight: 600;
@@ -247,10 +249,10 @@
         .tweet-text {
             font-size: 1.1rem;
             line-height: 1.6;
-            color: #333;
+            color: #111827;
             margin-bottom: 1rem;
-            white-space: pre-wrap; /* preserve line breaks and wrap long text */
-            word-break: break-word; /* break very long words */
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .tweet-pics {
@@ -261,16 +263,16 @@
         }
 
         .tweet-pic {
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .tweet-pic:hover {
             transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .tweet-pic img {
@@ -288,8 +290,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.75);
         }
 
         .pic-modal.show {
@@ -307,8 +308,8 @@
         .pic-modal img {
             max-width: 90vw;
             max-height: 90vh;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
         }
 
         .pic-modal-close {
@@ -341,31 +342,31 @@
         }
 
         .action-btn {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            color: #667eea;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            color: #374151;
             padding: 0.5rem 1rem;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .action-btn:hover {
-            background: #667eea;
+            background: #374151;
             color: white;
             transform: translateY(-1px);
         }
 
         .action-btn.active {
-            background: #667eea;
+            background: #374151;
             color: white;
         }
 
         .json-viewer {
             margin-top: 1rem;
-            background: #1a1a1a;
-            border-radius: 10px;
+            background: #1f2937;
+            border-radius: 8px;
             padding: 1rem;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             font-size: 0.85rem;
@@ -383,10 +384,11 @@
 
         .duplicates-section {
             margin-top: 1rem;
-            background: #f8f9ff;
-            border-radius: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
             padding: 1rem;
             display: none;
+            border: 1px solid #e5e7eb;
         }
 
         .duplicates-section.show {
@@ -395,7 +397,7 @@
         }
 
         .duplicates-header {
-            color: #667eea;
+            color: #374151;
             font-weight: 600;
             margin-bottom: 1rem;
             display: flex;
@@ -405,15 +407,15 @@
 
         .duplicate-card {
             background: white;
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 1rem;
             margin-bottom: 0.5rem;
-            border: 1px solid #e1e5e9;
+            border: 1px solid #e5e7eb;
             transition: all 0.3s ease;
         }
 
         .duplicate-card:hover {
-            border-color: #667eea;
+            border-color: #6b7280;
             transform: translateY(-1px);
         }
 
@@ -423,13 +425,13 @@
             align-items: center;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
-            color: #666;
+            color: #6b7280;
         }
 
         .duplicate-text {
             font-size: 0.95rem;
             line-height: 1.5;
-            color: #333;
+            color: #111827;
             white-space: pre-wrap;
             word-break: break-word;
         }
@@ -446,52 +448,120 @@
         }
 
         .json-content {
-            color: #f8f8f2;
+            color: #f9fafb;
         }
 
         .json-key {
-            color: #66d9ef;
+            color: #93c5fd;
         }
 
         .json-string {
-            color: #a6e22e;
+            color: #86efac;
         }
 
         .json-number {
-            color: #fd971f;
+            color: #fbbf24;
         }
 
         .json-boolean {
-            color: #ae81ff;
+            color: #c084fc;
         }
 
         .json-null {
-            color: #f92672;
+            color: #f87171;
         }
 
         .no-results {
             text-align: center;
             padding: 3rem;
-            color: #666;
+            color: #6b7280;
             font-size: 1.1rem;
         }
 
         .error {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 8px;
             margin: 1rem 0;
         }
 
-        @keyframes sparkle {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        .about-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
         }
 
-        .sparkle {
-            animation: sparkle 1.5s ease-in-out infinite;
+        .about-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .about-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e5e7eb;
+            position: relative;
+        }
+
+        .about-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .about-close:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .about-content h2 {
+            color: #111827;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .about-content p {
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .twitter-handles {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .twitter-handles code {
+            background: #374151;
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin: 0 0.2rem;
         }
 
         @media (max-width: 768px) {
@@ -518,8 +588,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>tweet semantic search <span class="sparkle">✨</span></h1>
-            <p>coded by claude & corbin >_<</p>
+            <h1>tweet semantic search</h1>
+            <p>coded by claude & corbin >_<&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="showAbout()" style="color: #6b7280; text-decoration: underline;">about</a>&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" onclick="showContact()" style="color: #6b7280; text-decoration: underline;">talk</a></p>
         </div>
 
         <div class="search-card">
@@ -528,12 +598,12 @@
                     type="text" 
                     class="search-input" 
                     id="queryInput"
-                    placeholder="enter your search query... (e.g., 'morning coffee vibes')"
+                    placeholder="enter your search query... (eg, 'there is joy underneath for free')"
                     required
                 >
                 <div class="controls">
                     <label for="topK">top results:</label>
-                    <input type="number" class="k-input" id="topK" value="50" min="1" max="50">
+                    <input type="number" class="k-input" id="topK" value="50" min="1" max="500">
                     <button type="submit" class="search-btn" id="searchBtn">
                         search tweets ✨
                     </button>
@@ -542,6 +612,42 @@
         </div>
 
         <div id="results"></div>
+    </div>
+
+    <!-- about modal -->
+    <div class="about-modal" id="aboutModal">
+        <div class="about-content">
+            <button class="about-close" onclick="hideAbout()">&times;</button>
+            <h2>about this page ✨</h2>
+            <p>this semantic search goes through a curated collection of tweets that i've gathered >_<</p>
+
+            <p>i made this bc i rly wanted a better search for nickcammarata's account, since his writing has been incredibly helpful to me and i find myself searching his account extremely often, but twitter search is sorta lackluster, so i thought a simple vector embedding search would do the job! and it turns out it works pretty well. thanks claude for helping :)</p>
+            
+            <div class="twitter-handles">
+                <strong>data sources include:</strong><br>
+                • all my bookmarks & likes (from twitter data request) <br>
+                • most tweets from WystanTBS (+ likes), AskYatharth, RomeoStevens76 (+ likes), johnsonmxe (all downloaded from <a href="https://www.community-archive.org">community archive</a>)<br>
+                • smuggled most tweets from sashachapin and some tweets from nickcammarata ^^ (ie, web-scraped with claude's help)<br>
+            </div>
+            
+            <p>github is <a href="https://github.com/ubercorb77/tweets-scraper-publish/">here</a> and the code is kinda scuffed bc i mainly vibe-coded the technical parts w claude; i just designed the logic/flow + sent claude <a href="https://i.imgur.com/PuF7fIq.png">friendship rays</a></p>
+        </div>
+    </div>
+
+    <!-- contact modal -->
+    <div class="about-modal" id="contactModal">
+        <div class="about-content">
+            <button class="about-close" onclick="hideContact()">&times;</button>
+            <h2>contact ✨</h2>
+            <p>hey! if you have any questions or any ideas or anything!</p>
+            
+            <div class="twitter-handles">
+                <strong>find me on</strong><br>
+                • twitter: corbindreams<br>
+                • email: corbin underscore aquino at brown dot edu<br>
+                • or just vibe in the replies ^^
+            </div>
+        </div>
     </div>
 
     <script>
@@ -747,8 +853,8 @@
                             return `
                                 <div class="duplicate-card">
                                     <div class="duplicate-header">
-                                        <span style="font-family: 'SF Mono', monospace; background: #f0f0f0; padding: 0.2rem 0.5rem; border-radius: 4px;">
-                                            <a href="${dupTwitterUrl}" target="_blank" style="color: #667eea; text-decoration: none;">${dup.id}</a>
+                                        <span style="font-family: 'SF Mono', monospace; background: #f3f4f6; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                                            <a href="${dupTwitterUrl}" target="_blank" style="color: #374151; text-decoration: none;">${dup.id}</a>
                                         </span>
                                         <span>${dupAuthorDisplay} • ${(dup.score * 100).toFixed(1)}% match</span>
                                     </div>
@@ -797,7 +903,7 @@
 
             resultsDiv.innerHTML = `
                 <div class="search-card">
-                    <h3 style="margin-bottom: 1rem; color: #667eea;">
+                    <h3 style="margin-bottom: 1rem; color: #374151;">
                         found ${results.length} tweets for "${query}" ✨
                     </h3>
                     <div class="timer" style="margin-bottom: 1rem;">search completed in ${searchTime.toFixed(1)}s</div>
@@ -895,6 +1001,60 @@
             setTimeout(() => {
                 document.body.removeChild(modal);
             }, 300);
+        }
+
+        // about modal functions ✨
+        function showAbout() {
+            const modal = document.getElementById('aboutModal');
+            modal.classList.add('show');
+
+            // close on click outside content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideAbout();
+                }
+            });
+
+            // close on escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    hideAbout();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function hideAbout() {
+            const modal = document.getElementById('aboutModal');
+            modal.classList.remove('show');
+        }
+
+        // contact modal functions ✨
+        function showContact() {
+            const modal = document.getElementById('contactModal');
+            modal.classList.add('show');
+
+            // close on click outside content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideContact();
+                }
+            });
+
+            // close on escape key
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    hideContact();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function hideContact() {
+            const modal = document.getElementById('contactModal');
+            modal.classList.remove('show');
         }
     </script>
 </body>

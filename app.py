@@ -25,7 +25,7 @@ CORS(app)  # enable cors for frontend
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 EMBED_MODEL = "text-embedding-3-large"
 EMBED_DIM = 784
-K = 5
+K = 50
 
 # global variables for chunked data >_<
 manifest = None
